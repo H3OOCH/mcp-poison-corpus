@@ -8,11 +8,11 @@
 | _你的_ | | | | | |
 
 **记分口径**：召回和误报必须同时报。只报召回的，等于没报。
-| trust-center 0.2.1（dsh-trust-center） | 规则匹配 + 结构启发式 | 16 | 52.9% | 66.7% | 见下方"已知缺口" |
+| trust-center 0.2.2（修复后） | 规则 + 结构启发式 + base64 解码 | 16 | 82.4% | 33.3% | 见下方已知缺口 |
 
 ## 已知缺口（trust-center 0.2.1 实测，2026-11-06）
 
-用 `tools/adapters/trust-center.mjs` 接入后跑出的结果：**样本级 53.8% / 信号级 52.9% / 误报 66.7%**。
+用 `tools/adapters/trust-center.mjs` 接入后跑出的结果：**0.2.1 = 53.8% / 52.9% / 66.7%；修复后 = 92.3% / 82.4% / 33.3%**。
 
 漏报（该报没报）：
 1. `encoded-payload`、`encoded-in-schema-desc` —— 没有 base64 解码检测
