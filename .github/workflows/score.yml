@@ -19,45 +19,17 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Corpus self-check（语料声称的信号必须真的存在）
+      - name: Corpus self-check
         run: python tools/selfcheck.py
 
       - name: Score reference baseline
         run: |
-          python tools/score.py \
-            --scanner "python tools/baseline.py {sample}" \
-            --json > score-baseline.json
-          python - <<'PY'
-          import json
-          d = json.load(open("score-baseline.json", encoding="utf-8"))
-          print(f"样本 {d['samples']} 条（正 {d['positives']} / 负 {d['negatives']}）")
-          print(f"样本级检出 {d['sample_detection_rate']}%  信号级召回 {d['signal_recall']}%  误报 {d['false_positive_rate']}%")
-          PY
+          python tools/score.py --scanner "python tools/baseline.py {sample}" --json > score-baseline.json
+          python tools/ci_summary.py score-baseline.json
 
-      - name: Workflow summary
+      - name: Write step summary
         if: always()
-        run: |
-          {
-            echo "## mcp-poison-corpus 打分"
-            echo ""
-            echo "| 指标 | 数值 |"
-            echo "|---|---|"
-            python - <<'PY'
-          import json, os
-          p = "score-baseline.json"
-          if not os.path.exists(p):
-              print("| 注意 | 打分未产出，检查上一步 |")
-          else:
-              d = json.load(open(p, encoding="utf-8"))
-              print(f"| 样本数 | {d['samples']}（正 {d['positives']} / 负 {d['negatives']}） |")
-              print(f"| 样本级检出 | {d['sample_detection_rate']}% |")
-              print(f"| 信号级召回 | {d['signal_recall']}% |")
-              print(f"| 负样本误报 | {d['false_positive_rate']}% |")
-              fp = d.get("false_positive_samples") or []
-              if fp:
-                  print(f"| 误报样本 | {', '.join(fp)} |")
-          PY
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: python tools/ci_summary.py score-baseline.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload score artifact
         if: always()
